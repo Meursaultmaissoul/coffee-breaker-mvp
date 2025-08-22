@@ -7,6 +7,12 @@
 <!-- Header (calendar must be below this title) -->
 <header class="app-header">
   <h1 id="appTitle">☕ Coffee Break</h1>
+  <div class="counts">
+    Open now:
+    ☕ <span id="countCoffee">0</span>
+    &nbsp;&nbsp;🍱 <span id="countLunch">0</span>
+    &nbsp;&nbsp;🍚 <span id="countZanpan">0</span>
+  </div>
 </header>
 
 <!-- Two-column layout below the header -->
@@ -72,6 +78,14 @@
         </div>
       </div>
 
+      <!-- NEW: group size (visible for lunch/zanpan, coffee fixed 1-on-1) -->
+      <div class="row" id="groupRow" style="display:none">
+        <button id="grpMinus" type="button">−</button>
+        <span>Group size: <b id="grpSizeVal">2</b></span>
+        <button id="grpPlus" type="button">+</button>
+      </div>
+      <p class="hint" id="groupHint" style="display:none">Lunch/残飯 can be small groups. Coffee is always 1-on-1.</p>
+
       <div class="row">
         <button id="yap">Ping Now!</button>
         <span id="yapMsg" class="hint"></span>
@@ -79,7 +93,7 @@
     </section>
   </main>
 
-  <!-- Calendar (now guaranteed below header) -->
+  <!-- Calendar (below header by DOM order) -->
   <aside id="calendar">
     <div class="cal-head">
       <button id="calPrev" title="Previous month">◀</button>
@@ -94,9 +108,11 @@
   </aside>
 </div>
 
-<!-- Back button at the bottom of the screen -->
+<!-- Bottom back button -->
 <a class="btn-back-bottom" href="index.html">← Change category</a>
 
 <script src="api.gas.js"></script>
 <script src="config.js"></script>
 <script src="ui.js"></script>
+
+
