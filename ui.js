@@ -6,8 +6,12 @@ function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
 
 // ===== elements =====
 const emailEl=q('email'), nameEl=q('name'), ageEl=q('age');
-const openEl=q('open'), saveBtn=q('save'), yapBtn=q('yap');
+const openEl=q('open'), sameSexPref=q('sameSex'), sameSexYap=q('sameSexYap');
+const saveBtn=q('save'), yapBtn=q('yap');
 const saveMsg=q('saveMsg'), statusMsg=q('statusMsg'), yapMsg=q('yapMsg');
+
+// gender radios
+const genderInputs = Array.from(document.querySelectorAll('input[name="gender"]'));
 
 // dual range (status)
 const ageMin=q('ageMin'), ageMax=q('ageMax'), fillStatus=q('fillStatus'), ageRangeLabel=q('ageRangeLabel');
@@ -16,12 +20,13 @@ const statusRangeWrap = q('statusRange');
 const ageMinY=q('ageMinYap'), ageMaxY=q('ageMaxYap'), fillYap=q('fillYap'), ageRangeLabelY=q('ageRangeLabelYap');
 const yapRangeWrap = q('yapRange');
 
+// group range
+const groupBlock = q('groupBlock'), groupRangeWrap = q('groupRange');
+const groupMin=q('groupMin'), groupMax=q('groupMax'), fillGroup=q('fillGroup'), groupRangeLabel=q('groupRangeLabel');
+const groupTicks = q('groupTicks');
+
 // counts
 const countCoffee = q('countCoffee'), countLunch = q('countLunch'), countZanpan = q('countZanpan');
-
-// group size UI
-const groupRow = q('groupRow'), groupHint = q('groupHint');
-const grpMinus = q('grpMinus'), grpPlus = q('grpPlus'), grpSizeVal = q('grpSizeVal');
 
 // ===== category =====
 const CATEGORY_MAP = {
@@ -44,10 +49,26 @@ q('yapHeader').textContent = `3) ${CATEGORY_MAP[category].word} Now`;
   ageEl.value   = localStorage.getItem('cm_age')   || '';
   openEl.checked = localStorage.getItem(`cm_open_${category}`) === '1';
 
+  // gender
+  const g = localStorage.getItem('cm_gender') || '';
+  genderInputs.forEach(r => r.checked = (r.value === g));
+
+  // same-sex switches
+  sameSexPref.checked = localStorage.getItem(`cm_same_${category}`) === '1';
+  sameSexYap.checked  = localStorage.getItem('cm_same_yap') === '1';
+
+  // ages
   const amin = +(localStorage.getItem('cm_ageMin') || 20);
   const amax = +(localStorage.getItem('cm_ageMax') || 60);
   setDual(ageMin, ageMax, fillStatus, ageRangeLabel, amin, amax);
   setDual(ageMinY, ageMaxY, fillYap, ageRangeLabelY, amin, amax);
+
+  // group range defaults
+  renderGroupTicks();
+  const gmin = +(localStorage.getItem(`cm_gmin_${category}`) || 1);
+  const gmax = +(localStorage.getItem(`cm_gmax_${category}`) || 3);
+  setDual(groupMin, groupMax, fillGroup, groupRangeLabel, gmin, gmax, 1, 8, true);
+  updateGroupUI();
 })();
 
 function persistLocal(){
@@ -55,12 +76,19 @@ function persistLocal(){
   localStorage.setItem('cm_name',  nameEl.value.trim());
   localStorage.setItem('cm_age',   ageEl.value.trim());
   localStorage.setItem(`cm_open_${category}`, openEl.checked ? '1':'0');
+
+  const gSel = (genderInputs.find(r => r.checked) || {}).value || '';
+  localStorage.setItem('cm_gender', gSel);
+  localStorage.setItem(`cm_same_${category}`, sameSexPref.checked ? '1':'0');
+  localStorage.setItem('cm_same_yap', sameSexYap.checked ? '1':'0');
 }
 
-// ===== dual-range (independent ends) =====
-function setDual(minEl, maxEl, fillEl, labelEl, a, b){
+// ===== dual-range helpers =====
+function setDual(minEl, maxEl, fillEl, labelEl, a, b, lo=null, hi=null, isGroup=false){
+  lo = (lo==null)? +minEl.min : lo;
+  hi = (hi==null)? +minEl.max : hi;
+
   let min = Math.min(a,b), max = Math.max(a,b);
-  const lo=+minEl.min, hi=+minEl.max;
   min = clamp(min, lo, hi); max = clamp(max, lo, hi);
   minEl.value=min; maxEl.value=max;
 
@@ -70,19 +98,31 @@ function setDual(minEl, maxEl, fillEl, labelEl, a, b){
   fillEl.style.right = (100 - pctR) + '%';
   if (labelEl) labelEl.textContent = `${min}-${max}`;
 
-  localStorage.setItem('cm_ageMin', min);
-  localStorage.setItem('cm_ageMax', max);
+  if (isGroup) {
+    localStorage.setItem(`cm_gmin_${category}`, min);
+    localStorage.setItem(`cm_gmax_${category}`, max);
+    paintGroupTicks(min, max);
+  } else {
+    localStorage.setItem('cm_ageMin', min);
+    localStorage.setItem('cm_ageMax', max);
+  }
 }
-function attachDual(container, minEl, maxEl, fillEl, labelEl, onChange){
-  const refresh = () => { setDual(minEl, maxEl, fillEl, labelEl, +minEl.value, +maxEl.value); onChange && onChange(); };
+
+function attachDual(container, minEl, maxEl, fillEl, labelEl, onChange, lo=null, hi=null, isGroup=false){
+  const refresh = () => {
+    setDual(minEl, maxEl, fillEl, labelEl, +minEl.value, +maxEl.value, lo, hi, isGroup);
+    onChange && onChange();
+  };
   minEl.oninput = refresh;
   maxEl.oninput = refresh;
 
   const rectToVal = (clientX) => {
     const rect = container.getBoundingClientRect();
-    const lo=+minEl.min, hi=+minEl.max;
+    lo=(lo==null)? +minEl.min : lo; hi=(hi==null)? +minEl.max : hi;
     const pct = clamp((clientX - rect.left)/rect.width, 0, 1);
-    return Math.round(lo + pct*(hi-lo));
+    const raw = lo + pct*(hi-lo);
+    const val = isGroup ? Math.round(raw) : Math.round(raw); // both integer steps
+    return clamp(val, lo, hi);
   };
   let active = null; // 'min' or 'max'
   const pick = (val) => (Math.abs(val - +minEl.value) <= Math.abs(val - +maxEl.value)) ? 'min' : 'max';
@@ -105,6 +145,7 @@ function attachDual(container, minEl, maxEl, fillEl, labelEl, onChange){
     e.preventDefault();
   };
   const up = ()=>{ active=null; };
+
   container.addEventListener('pointerdown', down);
   container.addEventListener('pointermove', move);
   container.addEventListener('pointerup', up);
@@ -117,41 +158,38 @@ function attachDual(container, minEl, maxEl, fillEl, labelEl, onChange){
   container.addEventListener('touchend', up);
 }
 
-// hook up the sliders
-attachDual(statusRangeWrap, ageMin,  ageMax,  fillStatus, ageRangeLabel,   () => { saveProfile(statusMsg); refreshOpenCounts(); });
-attachDual(yapRangeWrap,    ageMinY, ageMaxY, fillYap,    ageRangeLabelY);
-
-// ===== group size logic =====
-const GROUP_MIN = 2, GROUP_MAX = 6;
-let groupSize = parseInt(localStorage.getItem(`cm_group_${category}`) || (category==='coffee'?1:2), 10);
-function updateGroupUI(){
-  if(category === 'coffee'){
-    groupRow.style.display = 'none';
-    groupHint.style.display = 'none';
-    groupSize = 1;
-  } else {
-    groupRow.style.display = 'flex';
-    groupHint.style.display = 'block';
-    groupSize = clamp(groupSize || 2, GROUP_MIN, GROUP_MAX);
-    grpSizeVal.textContent = String(groupSize);
+// group ticks (8 people emojis)
+function renderGroupTicks(){
+  groupTicks.innerHTML = '';
+  for(let i=1;i<=8;i++){
+    const s=document.createElement('span');
+    s.textContent = i%2===0 ? '🧑🏻' : '🧑🏽';
+    groupTicks.appendChild(s);
   }
-  localStorage.setItem(`cm_group_${category}`, groupSize);
 }
-grpMinus.onclick = ()=>{ if(category!=='coffee'){ groupSize = Math.max(GROUP_MIN, groupSize-1); grpSizeVal.textContent=groupSize; localStorage.setItem(`cm_group_${category}`, groupSize); } };
-grpPlus.onclick  = ()=>{ if(category!=='coffee'){ groupSize = Math.min(GROUP_MAX, groupSize+1); grpSizeVal.textContent=groupSize; localStorage.setItem(`cm_group_${category}`, groupSize); } };
-updateGroupUI();
+function paintGroupTicks(min,max){
+  const spans = groupTicks.querySelectorAll('span');
+  spans.forEach((sp,idx)=>{ const v=idx+1; sp.classList.toggle('on', v>=min && v<=max); });
+}
+function updateGroupUI(){
+  const show = (category!=='coffee');
+  groupBlock.style.display = show ? 'block' : 'none';
+  if (!show) { setDual(groupMin, groupMax, fillGroup, groupRangeLabel, 1, 1, 1, 8, true); }
+}
 
 // ===== API helpers =====
 async function saveProfile(showEl) {
   const email=emailEl.value.trim(), name=nameEl.value.trim();
   if(!email || !name){ showEl.textContent='Fill Email + Name first.'; showEl.className='hint err'; return; }
   const age = ageEl.value ? parseInt(ageEl.value,10) : null;
+  const gender = (genderInputs.find(r=>r.checked)||{}).value || '';
+  const same = !!sameSexPref.checked;
   try{
     showEl.textContent='Saving…'; showEl.className='hint';
     persistLocal();
-    const res = await window.API.register({ email, name, age, category, open: openEl.checked });
+    const res = await window.API.register({ email, name, age, category, open: openEl.checked, gender, sameSex: same });
     showEl.textContent = res.message || 'Saved.'; showEl.className='hint ok';
-    refreshOpenCounts();
+    refreshOpenCounts(); // reflects filters
   }catch(e){
     showEl.textContent = e.message || 'Failed.'; showEl.className='hint err';
   }
@@ -160,14 +198,23 @@ async function saveProfile(showEl) {
 // ===== events =====
 saveBtn.onclick = () => saveProfile(saveMsg);
 openEl.onchange = () => saveProfile(statusMsg);
+sameSexPref.onchange = () => saveProfile(statusMsg);
+genderInputs.forEach(r => r.onchange = () => saveProfile(saveMsg));
 
-// ===== counts row =====
+// hook up sliders
+attachDual(statusRangeWrap, ageMin,  ageMax,  fillStatus, ageRangeLabel,   () => { saveProfile(statusMsg); refreshOpenCounts(); });
+attachDual(yapRangeWrap,    ageMinY, ageMaxY, fillYap,    ageRangeLabelY);
+attachDual(groupRangeWrap,  groupMin, groupMax, fillGroup, groupRangeLabel, null, 1, 8, true);
+
+// counts row uses status filters (+ gender/sameSex)
 async function refreshOpenCounts(){
   const email = emailEl.value.trim();
   const minAge = Math.min(+ageMin.value, +ageMax.value);
   const maxAge = Math.max(+ageMin.value, +ageMax.value);
+  const gender = (genderInputs.find(r=>r.checked)||{}).value || '';
+  const same = !!sameSexPref.checked;
   try{
-    const res = await window.API.counts({ excludeEmail: email || null, minAge, maxAge });
+    const res = await window.API.counts({ excludeEmail: email || null, minAge, maxAge, userGender: gender, sameSex: same });
     const d = res.data || {};
     if (countCoffee) countCoffee.textContent = d.coffee ?? 0;
     if (countLunch)  countLunch.textContent  = d.lunch  ?? 0;
@@ -177,17 +224,21 @@ async function refreshOpenCounts(){
 window.addEventListener('load', refreshOpenCounts);
 emailEl.addEventListener('blur', refreshOpenCounts);
 
-// ===== Ping Now =====
+// Ping Now
 yapBtn.onclick = async () => {
   const email=emailEl.value.trim(), name=nameEl.value.trim();
   if(!email || !name){ yapMsg.textContent='Fill Email + Name first.'; yapMsg.className='hint err'; return; }
   const minAge = Math.min(+ageMinY.value, +ageMaxY.value);
   const maxAge = Math.max(+ageMinY.value, +ageMaxY.value);
-  const gs = (category==='coffee') ? 1 : clamp(groupSize||2, GROUP_MIN, GROUP_MAX);
+  const gender = (genderInputs.find(r=>r.checked)||{}).value || '';
+  const same = !!sameSexYap.checked;
+  const gmin = (category==='coffee') ? 1 : +groupMin.value;
+  const gmax = (category==='coffee') ? 1 : +groupMax.value;
+
   try{
     yapMsg.textContent='Sending…'; yapMsg.className='hint';
     persistLocal();
-    const res = await window.API.yap({ email, name, category, open: openEl.checked, minAge, maxAge, groupSize: gs });
+    const res = await window.API.yap({ email, name, category, open: openEl.checked, minAge, maxAge, sameSex: same, userGender: gender, groupMin: gmin, groupMax: gmax });
     yapMsg.textContent = res.message || 'Sent.'; yapMsg.className='hint ok';
   }catch(e){
     yapMsg.textContent = e.message || 'Failed.'; yapMsg.className='hint err';
@@ -245,3 +296,4 @@ async function renderCalendar(){
 calPrev.onclick = async ()=>{ if(--calMonth<1){calMonth=12;calYear--;} await renderCalendar(); };
 calNext.onclick = async ()=>{ if(++calMonth>12){calMonth=1; calYear++;} await renderCalendar(); };
 window.addEventListener('load', renderCalendar);
+
