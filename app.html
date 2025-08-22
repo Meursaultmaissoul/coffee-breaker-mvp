@@ -1,10 +1,10 @@
 <!doctype html>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Coffee Break</title>
+<title>Coffee/Lunch/残飯</title>
 <link rel="stylesheet" href="styles.css" />
 
-<!-- Header (calendar must be below this title) -->
+<!-- Header -->
 <header class="app-header">
   <h1 id="appTitle">☕ Coffee Break</h1>
   <div class="counts">
@@ -15,18 +15,29 @@
   </div>
 </header>
 
-<!-- Two-column layout below the header -->
+<!-- Two-column layout -->
 <div class="layout">
   <main>
     <!-- 1) Register / Login -->
     <section class="card" id="register">
       <h2>1) Register / Login</h2>
+
       <label for="email">Email</label>
       <input id="email" type="email" autocomplete="email" required />
+
       <label for="name">Name</label>
       <input id="name" type="text" autocomplete="name" required />
+
       <label for="age">Age</label>
       <input id="age" type="number" min="16" max="80" step="1" placeholder="e.g., 28" />
+
+      <label>Gender</label>
+      <div class="row">
+        <label class="chip"><input type="radio" name="gender" value="male" /> Male</label>
+        <label class="chip"><input type="radio" name="gender" value="female" /> Female</label>
+        <label class="chip"><input type="radio" name="gender" value="other" /> Other</label>
+      </div>
+
       <div class="row">
         <button id="save">Save / Update</button>
         <span id="saveMsg" class="hint"></span>
@@ -37,14 +48,21 @@
     <section class="card" id="status">
       <h2>2) Status (<span id="catLabel">Coffee</span>)</h2>
 
-      <!-- Switch-style Open toggle -->
+      <!-- Open switch -->
       <div class="switch-row">
         <input id="open" type="checkbox" />
         <label class="switch" for="open"><span class="knob"></span></label>
         <span class="switch-text">Open for <span id="catWord1">Coffee</span> (today)</span>
       </div>
 
-      <!-- Connected dual range (Status preference) -->
+      <!-- Same-sex switch (preference) -->
+      <div class="switch-row">
+        <input id="sameSex" type="checkbox" />
+        <label class="switch" for="sameSex"><span class="knob"></span></label>
+        <span class="switch-text">Same-sex only (preference)</span>
+      </div>
+
+      <!-- Preferred age range -->
       <div class="range-block">
         <div class="range-head">
           <strong>Preferred age range</strong> <span id="ageRangeLabel">20–60</span>
@@ -65,7 +83,14 @@
     <section class="card" id="yapNow">
       <h2 id="yapHeader">3) Coffee Now</h2>
 
-      <!-- Connected dual range (this ping only) -->
+      <!-- Same-sex switch (this ping only) -->
+      <div class="switch-row">
+        <input id="sameSexYap" type="checkbox" />
+        <label class="switch" for="sameSexYap"><span class="knob"></span></label>
+        <span class="switch-text">Same-sex only (this ping)</span>
+      </div>
+
+      <!-- Age range for this ping -->
       <div class="range-block">
         <div class="range-head">
           <strong>Age range for this ping</strong> <span id="ageRangeLabelYap">20–60</span>
@@ -78,13 +103,20 @@
         </div>
       </div>
 
-      <!-- NEW: group size (visible for lunch/zanpan, coffee fixed 1-on-1) -->
-      <div class="row" id="groupRow" style="display:none">
-        <button id="grpMinus" type="button">−</button>
-        <span>Group size: <b id="grpSizeVal">2</b></span>
-        <button id="grpPlus" type="button">+</button>
+      <!-- Group size range (1..8) with person emojis – shown for lunch/zanpan -->
+      <div class="range-block" id="groupBlock" style="display:none">
+        <div class="range-head">
+          <strong>Group size</strong> <span id="groupRangeLabel">1–3</span>
+        </div>
+        <div class="dual-range group" id="groupRange">
+          <div class="track"></div>
+          <div class="ticks" id="groupTicks"></div>
+          <div class="fill" id="fillGroup"></div>
+          <input id="groupMin" class="min" type="range" min="1" max="8" step="1" value="1" />
+          <input id="groupMax" class="max" type="range" min="1" max="8" step="1" value="3" />
+        </div>
+        <p class="hint">Pick min–max people. Coffee is always 1-on-1.</p>
       </div>
-      <p class="hint" id="groupHint" style="display:none">Lunch/残飯 can be small groups. Coffee is always 1-on-1.</p>
 
       <div class="row">
         <button id="yap">Ping Now!</button>
@@ -93,7 +125,7 @@
     </section>
   </main>
 
-  <!-- Calendar (below header by DOM order) -->
+  <!-- Calendar -->
   <aside id="calendar">
     <div class="cal-head">
       <button id="calPrev" title="Previous month">◀</button>
@@ -114,5 +146,7 @@
 <script src="api.gas.js"></script>
 <script src="config.js"></script>
 <script src="ui.js"></script>
+
+
 
 
