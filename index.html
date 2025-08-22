@@ -45,4 +45,8 @@
       const cat = ic.dataset.cat;
       icons.forEach(x=>{ if(x!==ic) x.classList.add('fade'); });
       ic.classList.add('selected');
-      wrap.classList.add('center'); // nudge selected toward
+      wrap.classList.add('center'); // nudge selected toward middle
+      go(cat);
+    };
+  });
+</script>
