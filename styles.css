@@ -1,9 +1,10 @@
-body { font-family: system-ui, Arial, sans-serif; max-width: 560px; margin: 40px auto; }
+body { font-family: system-ui, Arial, sans-serif; max-width: 600px; margin: 40px auto; }
 .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin: 16px 0; }
 label { display:block; margin:8px 0 4px; font-weight:600; }
-input[type="text"], input[type="email"] { width:100%; padding:10px; box-sizing:border-box; }
+input[type="text"], input[type="email"], input[type="number"] { width:100%; padding:10px; box-sizing:border-box; }
 .row { display:flex; align-items:center; gap:10px; margin-top:10px; }
 .inline { margin:0; font-weight:500; }
 button { padding:10px 14px; cursor:pointer; }
 .hint { color:#666; font-size:0.9rem; }
 .ok { color:#0a7a2f; } .err { color:#b00020; }
+input[type="range"] { flex:1; }
