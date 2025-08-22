@@ -4,7 +4,7 @@
 <title>Coffee Break</title>
 <link rel="stylesheet" href="styles.css" />
 
-<h1>☕ Coffee Break</h1>
+<h1 id="appTitle">☕ Coffee Break</h1>
 
 <!-- 1) Register / Login -->
 <section class="card" id="register">
@@ -13,6 +13,8 @@
   <input id="email" type="email" autocomplete="email" required />
   <label for="name">Name</label>
   <input id="name" type="text" autocomplete="name" required />
+  <label for="age">Age</label>
+  <input id="age" type="number" min="16" max="80" step="1" placeholder="e.g., 28" />
   <div class="row">
     <button id="save">Save / Update</button>
     <span id="saveMsg" class="hint"></span>
@@ -21,20 +23,39 @@
 
 <!-- 2) Status -->
 <section class="card" id="status">
-  <h2>2) Status</h2>
+  <h2>2) Status (<span id="catLabel">Coffee</span>)</h2>
   <div class="row">
     <input id="open" type="checkbox" />
-    <label for="open" class="inline">Open for Coffee (today)</label>
+    <label for="open" class="inline">Open for <span id="catWord1">Coffee</span> (today)</label>
   </div>
-  <p class="hint">Toggle autosaves if Email + Name are filled.</p>
+
+  <div style="margin-top:12px">
+    <div><strong>Preferred age range</strong> <span id="ageRangeLabel">20–60</span></div>
+    <div class="row">
+      <input id="ageMin" type="range" min="16" max="80" value="20" />
+      <input id="ageMax" type="range" min="16" max="80" value="60" />
+    </div>
+    <p class="hint">Drag to set who you’d like to hear from.</p>
+  </div>
+
+  <p class="hint">Toggles & ranges auto-save if Email + Name are filled.</p>
   <span id="statusMsg" class="hint"></span>
 </section>
 
-<!-- 3) Coffee & Yap Now -->
+<!-- 3) [Category] Now -->
 <section class="card" id="yapNow">
-  <h2>3) Coffee & Yap Now</h2>
+  <h2 id="yapHeader">3) Coffee Now</h2>
+
+  <div style="margin:0 0 8px 0">
+    <div><strong>Age range for this ping</strong> <span id="ageRangeLabelYap">20–60</span></div>
+    <div class="row">
+      <input id="ageMinYap" type="range" min="16" max="80" value="20" />
+      <input id="ageMaxYap" type="range" min="16" max="80" value="60" />
+    </div>
+  </div>
+
   <div class="row">
-    <button id="yap">Caffein and Yap Now!</button>
+    <button id="yap">Ping Now!</button>
     <span id="yapMsg" class="hint"></span>
   </div>
 </section>
