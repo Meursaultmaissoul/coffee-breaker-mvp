@@ -4,13 +4,14 @@
 <title>Coffee Break</title>
 <link rel="stylesheet" href="styles.css" />
 
+<!-- Header (calendar must be below this title) -->
+<header class="app-header">
+  <h1 id="appTitle">☕ Coffee Break</h1>
+</header>
+
+<!-- Two-column layout below the header -->
 <div class="layout">
   <main>
-    <div class="topbar">
-      <a class="btn-back" href="index.html">← Change category</a>
-      <h1 id="appTitle" class="grow">☕ Coffee Break</h1>
-    </div>
-
     <!-- 1) Register / Login -->
     <section class="card" id="register">
       <h2>1) Register / Login</h2>
@@ -45,8 +46,8 @@
         <div class="dual-range" id="statusRange">
           <div class="track"></div>
           <div class="fill" id="fillStatus"></div>
-          <input id="ageMin" type="range" min="16" max="80" value="20" />
-          <input id="ageMax" type="range" min="16" max="80" value="60" />
+          <input id="ageMin" class="min" type="range" min="16" max="80" value="20" />
+          <input id="ageMax" class="max" type="range" min="16" max="80" value="60" />
         </div>
         <p class="hint">Drag the two handles to set who you’d like to hear from.</p>
       </div>
@@ -66,8 +67,8 @@
         <div class="dual-range" id="yapRange">
           <div class="track"></div>
           <div class="fill" id="fillYap"></div>
-          <input id="ageMinYap" type="range" min="16" max="80" value="20" />
-          <input id="ageMaxYap" type="range" min="16" max="80" value="60" />
+          <input id="ageMinYap" class="min" type="range" min="16" max="80" value="20" />
+          <input id="ageMaxYap" class="max" type="range" min="16" max="80" value="60" />
         </div>
       </div>
 
@@ -78,7 +79,7 @@
     </section>
   </main>
 
-  <!-- Calendar aside -->
+  <!-- Calendar (now guaranteed below header) -->
   <aside id="calendar">
     <div class="cal-head">
       <button id="calPrev" title="Previous month">◀</button>
@@ -92,6 +93,9 @@
     <div class="cal-legend">☕ Coffee　🍱 Lunch　🍚 残飯</div>
   </aside>
 </div>
+
+<!-- Back button at the bottom of the screen -->
+<a class="btn-back-bottom" href="index.html">← Change category</a>
 
 <script src="api.gas.js"></script>
 <script src="config.js"></script>
