@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="styles.css" />
 <style>
   .start-wrap{max-width:600px;margin:60px auto;text-align:center}
-  .icons{display:flex;gap:24px;justify-content:space-between;align-items:center;margin-top:28px}
+  .icons{display:flex;gap:24px;justify-content:space-between;align-items:center;margin-top:28px;transition:justify-content .3s}
   .icon{flex:1;cursor:pointer;border:1px solid #ddd;border-radius:14px;padding:16px;transition:transform .35s,opacity .35s,box-shadow .35s}
   .icon:hover{box-shadow:0 6px 22px rgba(0,0,0,.08)}
   .emoji{font-size:44px;display:block}
@@ -13,6 +13,7 @@
   .fade{opacity:.25;transform:scale(.9)}
   .selected{z-index:2;transform:scale(1.15)}
   .loading{margin-top:22px;opacity:.9}
+  .center{justify-content:center;}
 </style>
 
 <div class="start-wrap">
@@ -20,37 +21,28 @@
   <p>選んでください（2秒で開始）</p>
 
   <div class="icons" id="icons">
-    <div class="icon" data-cat="lunch"  data-title="🍱 Lunch Break">
-      <span class="emoji">🍱</span><span class="label">Lunch</span>
-    </div>
-    <div class="icon" data-cat="coffee" data-title="☕ Coffee Break">
-      <span class="emoji">☕</span><span class="label">Coffee</span>
-    </div>
-    <div class="icon" data-cat="zanpan" data-title="🍚 残飯（残業ごはん）">
-      <span class="emoji">🍚</span><span class="label">残飯</span>
-    </div>
+    <div class="icon" data-cat="lunch"><span class="emoji">🍱</span><span class="label">Lunch</span></div>
+    <div class="icon" data-cat="coffee"><span class="emoji">☕</span><span class="label">Coffee</span></div>
+    <div class="icon" data-cat="zanpan"><span class="emoji">🍚</span><span class="label">残飯</span></div>
   </div>
 
   <div id="loading" class="loading" style="display:none;">Loading…</div>
+  <p class="hint" style="margin-top:18px"><a href="./app.html">Open app directly</a></p>
 </div>
 
 <script>
   const icons = document.querySelectorAll('.icon');
   const loading = document.getElementById('loading');
+  const wrap = document.getElementById('icons');
 
   function go(cat){
-    // remember choice
     localStorage.setItem('cm_category', cat);
-    // tiny load scene, then jump
     loading.style.display='block';
-    setTimeout(()=>{ location.href = 'index.html?cat=' + encodeURIComponent(cat); }, 2000);
+    setTimeout(()=>{ location.href = 'app.html?cat=' + encodeURIComponent(cat); }, 2000);
   }
   icons.forEach(ic=>{
     ic.onclick = () => {
       const cat = ic.dataset.cat;
       icons.forEach(x=>{ if(x!==ic) x.classList.add('fade'); });
       ic.classList.add('selected');
-      go(cat);
-    };
-  });
-</script>
+      wrap.classList.add('center'); // nudge selected toward
