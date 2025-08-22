@@ -5,7 +5,6 @@ h1, h2 { margin: 0 0 10px; }
 label { display:block; margin:8px 0 4px; font-weight:600; }
 input[type="text"], input[type="email"], input[type="number"] { width:100%; padding:10px; box-sizing:border-box; }
 .row { display:flex; align-items:center; gap:10px; margin-top:10px; }
-.inline { margin:0; font-weight:500; }
 button { padding:10px 14px; cursor:pointer; }
 .hint { color:#666; font-size:0.9rem; }
 .ok { color:#0a7a2f; }
@@ -14,11 +13,10 @@ button { padding:10px 14px; cursor:pointer; }
 /* Header + Layout */
 .app-header { max-width: 960px; margin: 24px auto 0; padding: 0 8px; }
 .app-header h1 { margin: 0 0 8px; }
+.counts { color:#444; margin: 4px 0 12px; font-weight:500; }
 
 .layout { max-width: 960px; margin: 8px auto 40px; padding: 0 8px; display: flex; gap: 16px; align-items: flex-start; }
 main { flex: 1; min-width: 0; }
-
-/* Calendar sits to the right but below header because of DOM order */
 #calendar { width: 290px; position: sticky; top: 12px; }
 
 /* Bottom back button */
@@ -30,7 +28,7 @@ main { flex: 1; min-width: 0; }
   box-shadow: 0 6px 22px rgba(0,0,0,.06);
 }
 
-/* Switch toggle (rounded rectangle with sliding knob) */
+/* Switch toggle */
 .switch-row { display:flex; align-items:center; gap:10px; margin:8px 0 16px; }
 .switch-row input { display:none; }
 .switch { width:54px; height:30px; border-radius:999px; background:#ddd; position:relative; cursor:pointer; transition:background .2s; }
@@ -39,14 +37,17 @@ main { flex: 1; min-width: 0; }
 .switch-row input:checked + .switch .knob { left:27px; }
 .switch-text { font-weight:500; }
 
-/* Connected dual range (single track with two handles) */
+/* Chips (gender radios) */
+.chip { border:1px solid #ddd; border-radius:999px; padding:6px 10px; cursor:pointer; }
+.chip input { margin-right:6px; }
+
+/* Dual-range core */
 .range-block { margin-top:8px; }
 .range-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
 .dual-range { position:relative; height:34px; }
 .dual-range .track { position:absolute; left:0; right:0; top:15px; height:4px; background:#e5e5e5; border-radius:2px; }
 .dual-range .fill  { position:absolute; top:15px; height:4px; background:#06c; border-radius:2px; }
 
-/* The two inputs overlap; whichever thumb is active floats above so both ends are movable */
 .dual-range input[type=range] {
   position:absolute; left:0; right:0; width:100%; margin:0;
   -webkit-appearance:none; background:transparent; height:34px;
@@ -64,7 +65,19 @@ main { flex: 1; min-width: 0; }
   width:18px; height:18px; border-radius:50%; background:#fff; border:2px solid #06c; cursor:pointer;
 }
 
-/* Calendar visuals */
+/* Group dual-range ticks */
+.dual-range.group { height:46px; }
+.dual-range.group .ticks {
+  position:absolute; left:0; right:0; top:0;
+  display:grid; grid-template-columns:repeat(8,1fr);
+  pointer-events:none; user-select:none;
+}
+.dual-range.group .ticks span {
+  text-align:center; font-size:18px; opacity:.35; transform:translateY(-4px);
+}
+.dual-range.group .ticks span.on { opacity:1; }
+
+/* Calendar */
 .cal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
 .cal-head button { padding:4px 8px; }
 .cal-weekdays { display:grid; grid-template-columns:repeat(7,1fr); font-weight:600; text-align:center; margin-bottom:4px; }
@@ -78,25 +91,7 @@ main { flex: 1; min-width: 0; }
 .cal-emojis { line-height:1.1; font-size:16px; word-break:break-word; }
 .cal-legend { color:#666; font-size:.9rem; margin-top:6px; }
 
-/* counts row under header */
-.counts { color:#444; margin: 4px 0 12px; font-weight:500; }
-
-/* Chips (gender radios) */
-.chip { border:1px solid #ddd; border-radius:999px; padding:6px 10px; cursor:pointer; }
-.chip input { margin-right:6px; }
-
-/* Dual-range ticks with person emojis */
-.dual-range.group { height:46px; }
-.dual-range.group .ticks {
-  position:absolute; left:0; right:0; top:0;
-  display:grid; grid-template-columns:repeat(8,1fr);
-  pointer-events:none; user-select:none;
-}
-.dual-range.group .ticks span {
-  text-align:center; font-size:18px; opacity:.35; transform:translateY(-4px);
-}
-.dual-range.group .ticks span.on { opacity:1; }
-
 /* Keep existing switch/dual-range/calendar styles you already have */
+
 
 
