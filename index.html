@@ -6,35 +6,40 @@
 
 <h1>☕ Coffee Break</h1>
 
-<section class="card">
-    <h2>Step 1: Register / Login</h2>
-    <label>Email</label>
-    <input id="email" type="email" autocomplete="email" required />
-    <label>Name</label>
-    <input id="name" type="text" autocomplete="name" required />
-    <div class="row">
-  <input id="accepting" type="checkbox" checked />
-  <label for="accepting" class="inline">Accepting now (toggle off for Power-working 💪)</label>
-</div>
-
+<!-- 1) Register / Login -->
+<section class="card" id="register">
+  <h2>1) Register / Login</h2>
+  <label for="email">Email</label>
+  <input id="email" type="email" autocomplete="email" required />
+  <label for="name">Name</label>
+  <input id="name" type="text" autocomplete="name" required />
+  <div class="row">
     <button id="save">Save / Update</button>
     <span id="saveMsg" class="hint"></span>
+  </div>
 </section>
 
-<section class="card">
-    <h2>Step 2: Status + Invite</h2>
-    <div class="row">
-        <input id="open" type="checkbox" />
-        <label for="open" class="inline">Open for Coffee (today)</label>
-    </div>
-    <div class="row">
-        <button id="yap">Coffee & Yap Now</button>
-        <span id="yapMsg" class="hint"></span>
-    </div>
+<!-- 2) Status -->
+<section class="card" id="status">
+  <h2>2) Status</h2>
+  <div class="row">
+    <input id="open" type="checkbox" />
+    <label for="open" class="inline">Open for Coffee (today)</label>
+  </div>
+  <p class="hint">Toggle autosaves if Email + Name are filled.</p>
+  <span id="statusMsg" class="hint"></span>
 </section>
 
+<!-- 3) Coffee & Yap Now -->
+<section class="card" id="yapNow">
+  <h2>3) Coffee & Yap Now</h2>
+  <div class="row">
+    <button id="yap">Caffein and Yap Now!</button>
+    <span id="yapMsg" class="hint"></span>
+  </div>
+</section>
+
+<!-- Scripts -->
 <script src="api.gas.js"></script>
-<script src="api.auto.js"></script> <!-- placeholder for later -->
 <script src="config.js"></script>
-
 <script src="ui.js"></script>
