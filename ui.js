@@ -42,7 +42,7 @@ setText('catLabel', CATEGORY_MAP[category].word);
 setText('catWord1', CATEGORY_MAP[category].word);
 q('yapHeader').textContent = `3) ${CATEGORY_MAP[category].word} Now`;
 
-// ===== local init =====
+// ===== init =====
 (() => {
   emailEl.value = localStorage.getItem('cm_email') || '';
   nameEl.value  = localStorage.getItem('cm_name')  || '';
@@ -121,7 +121,7 @@ function attachDual(container, minEl, maxEl, fillEl, labelEl, onChange, lo=null,
     lo=(lo==null)? +minEl.min : lo; hi=(hi==null)? +minEl.max : hi;
     const pct = clamp((clientX - rect.left)/rect.width, 0, 1);
     const raw = lo + pct*(hi-lo);
-    const val = isGroup ? Math.round(raw) : Math.round(raw); // both integer steps
+    const val = Math.round(raw);
     return clamp(val, lo, hi);
   };
   let active = null; // 'min' or 'max'
@@ -158,7 +158,7 @@ function attachDual(container, minEl, maxEl, fillEl, labelEl, onChange, lo=null,
   container.addEventListener('touchend', up);
 }
 
-// group ticks (8 people emojis)
+// group ticks
 function renderGroupTicks(){
   groupTicks.innerHTML = '';
   for(let i=1;i<=8;i++){
@@ -189,7 +189,7 @@ async function saveProfile(showEl) {
     persistLocal();
     const res = await window.API.register({ email, name, age, category, open: openEl.checked, gender, sameSex: same });
     showEl.textContent = res.message || 'Saved.'; showEl.className='hint ok';
-    refreshOpenCounts(); // reflects filters
+    refreshOpenCounts();
   }catch(e){
     showEl.textContent = e.message || 'Failed.'; showEl.className='hint err';
   }
@@ -197,8 +197,10 @@ async function saveProfile(showEl) {
 
 // ===== events =====
 saveBtn.onclick = () => saveProfile(saveMsg);
-openEl.onchange = () => saveProfile(statusMsg);
+openEl.onchange = async () => { await saveProfile(statusMsg); refreshOpenCounts(); };
 sameSexPref.onchange = () => saveProfile(statusMsg);
+sameSexYap.onchange  = () => { persistLocal(); };
+
 genderInputs.forEach(r => r.onchange = () => saveProfile(saveMsg));
 
 // hook up sliders
@@ -222,7 +224,6 @@ async function refreshOpenCounts(){
   }catch(_){}
 }
 window.addEventListener('load', refreshOpenCounts);
-emailEl.addEventListener('blur', refreshOpenCounts);
 
 // Ping Now
 yapBtn.onclick = async () => {
