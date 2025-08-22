@@ -80,3 +80,23 @@ main { flex: 1; min-width: 0; }
 
 /* counts row under header */
 .counts { color:#444; margin: 4px 0 12px; font-weight:500; }
+
+/* Chips (gender radios) */
+.chip { border:1px solid #ddd; border-radius:999px; padding:6px 10px; cursor:pointer; }
+.chip input { margin-right:6px; }
+
+/* Dual-range ticks with person emojis */
+.dual-range.group { height:46px; }
+.dual-range.group .ticks {
+  position:absolute; left:0; right:0; top:0;
+  display:grid; grid-template-columns:repeat(8,1fr);
+  pointer-events:none; user-select:none;
+}
+.dual-range.group .ticks span {
+  text-align:center; font-size:18px; opacity:.35; transform:translateY(-4px);
+}
+.dual-range.group .ticks span.on { opacity:1; }
+
+/* Keep existing switch/dual-range/calendar styles you already have */
+
+
