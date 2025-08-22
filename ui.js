@@ -1,5 +1,5 @@
-// ===== util =====
-function qs(s){ return document.querySelector(s); }
+// ===== utils =====
+function qs(sel){ return document.querySelector(sel); }
 function q(id){ return document.getElementById(id); }
 function getQuery(key){ return new URLSearchParams(location.search).get(key); }
 function setText(id, s){ const el=q(id); if(el) el.textContent=s; }
@@ -41,30 +41,51 @@ q('yapHeader').textContent = `3) ${CATEGORY_MAP[category].word} Now`;
   setDual(ageMin, ageMax, fillStatus, ageRangeLabel, amin, amax);
   setDual(ageMinY, ageMaxY, fillYap, ageRangeLabelY, amin, amax);
 })();
+
 function persistLocal(){
   localStorage.setItem('cm_email', emailEl.value.trim());
   localStorage.setItem('cm_name',  nameEl.value.trim());
   localStorage.setItem('cm_age',   ageEl.value.trim());
   localStorage.setItem(`cm_open_${category}`, openEl.checked ? '1':'0');
 }
+
+// ===== dual-range helpers (connected track, independent thumbs) =====
 function setDual(minEl, maxEl, fillEl, labelEl, a, b){
-  const min = Math.min(a,b), max=Math.max(a,b);
-  minEl.value=min; maxEl.value=max;
+  let min = Math.min(a,b), max = Math.max(a,b);
   const lo=+minEl.min, hi=+minEl.max;
+  min = clamp(min, lo, hi); max = clamp(max, lo, hi);
+  minEl.value=min; maxEl.value=max;
+
   const pctL = ((min-lo)/(hi-lo))*100;
   const pctR = ((max-lo)/(hi-lo))*100;
   fillEl.style.left  = pctL + '%';
   fillEl.style.right = (100 - pctR) + '%';
   if (labelEl) labelEl.textContent = `${min}-${max}`;
+
+  // persist shared range
   localStorage.setItem('cm_ageMin', min);
   localStorage.setItem('cm_ageMax', max);
 }
+
 function wireDual(minEl, maxEl, fillEl, labelEl, onChange){
   function update(){
     const a = +minEl.value, b = +maxEl.value;
     setDual(minEl, maxEl, fillEl, labelEl, a, b);
     onChange && onChange();
   }
+  const activate = el => { el.classList.add('active'); };
+  const deactivate = el => { el.classList.remove('active'); };
+
+  // Make each thumb independently draggable (fix lower/upper handle)
+  ['mousedown','touchstart','pointerdown'].forEach(ev=>{
+    minEl.addEventListener(ev, ()=>activate(minEl));
+    maxEl.addEventListener(ev, ()=>activate(maxEl));
+  });
+  ['mouseup','touchend','pointerup','mouseleave','touchcancel'].forEach(ev=>{
+    minEl.addEventListener(ev, ()=>deactivate(minEl));
+    maxEl.addEventListener(ev, ()=>deactivate(maxEl));
+  });
+
   minEl.oninput = update;
   maxEl.oninput = update;
 }
@@ -87,8 +108,9 @@ async function saveProfile(showEl) {
 // ===== events =====
 saveBtn.onclick = () => saveProfile(saveMsg);
 openEl.onchange = () => saveProfile(statusMsg);
-wireDual(ageMin, ageMax, fillStatus, ageRangeLabel, () => saveProfile(statusMsg));
-wireDual(ageMinY, ageMaxY, fillYap, ageRangeLabelY);
+
+wireDual(ageMin,  ageMax,  fillStatus, ageRangeLabel,   () => saveProfile(statusMsg));
+wireDual(ageMinY, ageMaxY, fillYap,    ageRangeLabelY);
 
 yapBtn.onclick = async () => {
   const email=emailEl.value.trim(), name=nameEl.value.trim();
@@ -100,8 +122,7 @@ yapBtn.onclick = async () => {
     persistLocal();
     const res = await window.API.yap({ email, name, category, open: openEl.checked, minAge, maxAge });
     yapMsg.textContent = res.message || 'Sent.'; yapMsg.className='hint ok';
-    // refresh calendar after a ping (organizer will send invite; acceptance lands later)
-    await renderCalendar();
+    await renderCalendar(); // refresh after ping
   }catch(e){
     yapMsg.textContent = e.message || 'Failed.'; yapMsg.className='hint err';
   }
@@ -110,20 +131,17 @@ yapBtn.onclick = async () => {
 // ===== calendar =====
 const calTitle = q('calTitle'), calGrid=q('calGrid');
 const calPrev  = q('calPrev'),  calNext = q('calNext');
-let calYear, calMonth; // month is 1..12
+let calYear, calMonth; // 1..12
 function setMonth(y,m){ calYear=y; calMonth=m; }
-(function initMonth(){
-  const d=new Date(); setMonth(d.getFullYear(), d.getMonth()+1);
-})();
-function ymKey(y,m){ return `${y}-${String(m).padStart(2,'0')}`; }
+(function initMonth(){ const d=new Date(); setMonth(d.getFullYear(), d.getMonth()+1); })();
 
+function ymKey(y,m){ return `${y}-${String(m).padStart(2,'0')}`; }
 function monthDays(y,m){
   const first = new Date(y,m-1,1);
   const last  = new Date(y,m,0).getDate();
   const startDow = first.getDay(); // 0..6 Sun..Sat
   return { last, startDow };
 }
-function emojiFor(cat){ return CATEGORY_MAP[cat]?.emoji || '•'; }
 
 async function fetchStats(year,month){
   const email = emailEl.value.trim();
@@ -139,8 +157,7 @@ async function renderCalendar(){
   calTitle.textContent = `${calYear}-${String(calMonth).padStart(2,'0')}`;
   calGrid.innerHTML = '';
 
-  // fetch accepted events
-  const stats = await fetchStats(calYear, calMonth); // { 'YYYY-MM-DD': {coffee:2,lunch:1,zanpan:0,total:3} }
+  const stats = await fetchStats(calYear, calMonth); // map by YYYY-MM-DD
 
   // leading blanks
   for(let i=0;i<startDow;i++){
