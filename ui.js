@@ -1,117 +1,168 @@
-// ===== Helpers =====
+// ===== util =====
+function qs(s){ return document.querySelector(s); }
+function q(id){ return document.getElementById(id); }
 function getQuery(key){ return new URLSearchParams(location.search).get(key); }
-function setText(id, s){ const el=document.getElementById(id); if(el) el.textContent=s; }
+function setText(id, s){ const el=q(id); if(el) el.textContent=s; }
+function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
 
-// ===== Elements =====
-const emailEl = document.getElementById('email');
-const nameEl  = document.getElementById('name');
-const ageEl   = document.getElementById('age');
-const openEl  = document.getElementById('open');
-const saveBtn = document.getElementById('save');
-const yapBtn  = document.getElementById('yap');
-const saveMsg = document.getElementById('saveMsg');
-const statusMsg = document.getElementById('statusMsg');
-const yapMsg  = document.getElementById('yapMsg');
+// ===== elements =====
+const emailEl=q('email'), nameEl=q('name'), ageEl=q('age');
+const openEl=q('open'), saveBtn=q('save'), yapBtn=q('yap');
+const saveMsg=q('saveMsg'), statusMsg=q('statusMsg'), yapMsg=q('yapMsg');
 
-// age range (Status)
-const ageMin = document.getElementById('ageMin');
-const ageMax = document.getElementById('ageMax');
-const ageRangeLabel = document.getElementById('ageRangeLabel');
-// age range (Yap)
-const ageMinY = document.getElementById('ageMinYap');
-const ageMaxY = document.getElementById('ageMaxYap');
-const ageRangeLabelY = document.getElementById('ageRangeLabelYap');
+// dual range (status)
+const ageMin=q('ageMin'), ageMax=q('ageMax'), fillStatus=q('fillStatus'), ageRangeLabel=q('ageRangeLabel');
+// dual range (yap)
+const ageMinY=q('ageMinYap'), ageMaxY=q('ageMaxYap'), fillYap=q('fillYap'), ageRangeLabelY=q('ageRangeLabelYap');
 
-// ===== Category setup =====
+// ===== category =====
 const CATEGORY_MAP = {
-  coffee: { title:'☕ Coffee Break', word:'Coffee' },
-  lunch:  { title:'🍱 Lunch Break',  word:'Lunch'  },
-  zanpan: { title:'🍚 残飯（残業ごはん）', word:'残飯' }
+  coffee: { title:'☕ Coffee Break', word:'Coffee', emoji:'☕' },
+  lunch:  { title:'🍱 Lunch Break',  word:'Lunch',  emoji:'🍱' },
+  zanpan: { title:'🍚 残飯（残業ごはん）', word:'残飯', emoji:'🍚' }
 };
 let category = getQuery('cat') || localStorage.getItem('cm_category') || 'coffee';
-if(!CATEGORY_MAP[category]) category = 'coffee';
+if(!CATEGORY_MAP[category]) category='coffee';
 localStorage.setItem('cm_category', category);
-
-// UI text swaps
 setText('appTitle', CATEGORY_MAP[category].title);
 setText('catLabel', CATEGORY_MAP[category].word);
 setText('catWord1', CATEGORY_MAP[category].word);
-document.getElementById('yapHeader').textContent = `3) ${CATEGORY_MAP[category].word} Now`;
+q('yapHeader').textContent = `3) ${CATEGORY_MAP[category].word} Now`;
 
-// ===== Prefill local =====
+// ===== local init =====
 (() => {
   emailEl.value = localStorage.getItem('cm_email') || '';
   nameEl.value  = localStorage.getItem('cm_name')  || '';
   ageEl.value   = localStorage.getItem('cm_age')   || '';
   openEl.checked = localStorage.getItem(`cm_open_${category}`) === '1';
 
-  // ranges (shared defaults)
-  const min = +(localStorage.getItem('cm_ageMin') || 20);
-  const max = +(localStorage.getItem('cm_ageMax') || 60);
-  ageMin.value=min; ageMax.value=max;
-  ageMinY.value=min; ageMaxY.value=max;
-  ageRangeLabel.textContent = `${min}–${max}`;
-  ageRangeLabelY.textContent = `${min}–${max}`;
+  const amin = +(localStorage.getItem('cm_ageMin') || 20);
+  const amax = +(localStorage.getItem('cm_ageMax') || 60);
+  setDual(ageMin, ageMax, fillStatus, ageRangeLabel, amin, amax);
+  setDual(ageMinY, ageMaxY, fillYap, ageRangeLabelY, amin, amax);
 })();
-function persistLocal() {
+function persistLocal(){
   localStorage.setItem('cm_email', emailEl.value.trim());
   localStorage.setItem('cm_name',  nameEl.value.trim());
   localStorage.setItem('cm_age',   ageEl.value.trim());
-  localStorage.setItem(`cm_open_${category}`, openEl.checked ? '1' : '0');
+  localStorage.setItem(`cm_open_${category}`, openEl.checked ? '1':'0');
 }
-function saveRanges(min, max) {
-  const a = Math.min(+min.value, +max.value);
-  const b = Math.max(+min.value, +max.value);
-  min.value=a; max.value=b;
-  localStorage.setItem('cm_ageMin', a);
-  localStorage.setItem('cm_ageMax', b);
-  ageRangeLabel.textContent = `${ageMin.value}–${ageMax.value}`;
-  ageRangeLabelY.textContent = `${ageMinY.value}–${ageMaxY.value}`;
-  // keep both sliders in sync
-  if(min===ageMin){ ageMinY.value=a; ageMaxY.value=b; }
-  else { ageMin.value=a; ageMax.value=b; }
+function setDual(minEl, maxEl, fillEl, labelEl, a, b){
+  const min = Math.min(a,b), max=Math.max(a,b);
+  minEl.value=min; maxEl.value=max;
+  const lo=+minEl.min, hi=+minEl.max;
+  const pctL = ((min-lo)/(hi-lo))*100;
+  const pctR = ((max-lo)/(hi-lo))*100;
+  fillEl.style.left  = pctL + '%';
+  fillEl.style.right = (100 - pctR) + '%';
+  if (labelEl) labelEl.textContent = `${min}-${max}`;
+  localStorage.setItem('cm_ageMin', min);
+  localStorage.setItem('cm_ageMax', max);
+}
+function wireDual(minEl, maxEl, fillEl, labelEl, onChange){
+  function update(){
+    const a = +minEl.value, b = +maxEl.value;
+    setDual(minEl, maxEl, fillEl, labelEl, a, b);
+    onChange && onChange();
+  }
+  minEl.oninput = update;
+  maxEl.oninput = update;
 }
 
-// ===== Save Profile =====
+// ===== API helpers =====
 async function saveProfile(showEl) {
-  const email = emailEl.value.trim(), name = nameEl.value.trim();
-  if (!email || !name) { showEl.textContent = 'Fill Email + Name first.'; showEl.className='hint err'; return; }
+  const email=emailEl.value.trim(), name=nameEl.value.trim();
+  if(!email || !name){ showEl.textContent='Fill Email + Name first.'; showEl.className='hint err'; return; }
   const age = ageEl.value ? parseInt(ageEl.value,10) : null;
-  try {
-    showEl.textContent = 'Saving…'; showEl.className='hint';
+  try{
+    showEl.textContent='Saving…'; showEl.className='hint';
     persistLocal();
-    const res = await window.API.register({
-      email, name, age, category, open: openEl.checked
-    });
+    const res = await window.API.register({ email, name, age, category, open: openEl.checked });
     showEl.textContent = res.message || 'Saved.'; showEl.className='hint ok';
-  } catch (e) {
+  }catch(e){
     showEl.textContent = e.message || 'Failed.'; showEl.className='hint err';
   }
 }
 
-// ===== Events =====
+// ===== events =====
 saveBtn.onclick = () => saveProfile(saveMsg);
 openEl.onchange = () => saveProfile(statusMsg);
-ageMin.oninput = () => saveRanges(ageMin, ageMax);
-ageMax.oninput = () => saveRanges(ageMin, ageMax);
-ageMinY.oninput = () => saveRanges(ageMinY, ageMaxY);
-ageMaxY.oninput = () => saveRanges(ageMinY, ageMaxY);
+wireDual(ageMin, ageMax, fillStatus, ageRangeLabel, () => saveProfile(statusMsg));
+wireDual(ageMinY, ageMaxY, fillYap, ageRangeLabelY);
 
-document.getElementById('yap').onclick = async () => {
-  const email = emailEl.value.trim(), name = nameEl.value.trim();
-  if (!email || !name) { yapMsg.textContent = 'Fill Email + Name first.'; yapMsg.className='hint err'; return; }
+yapBtn.onclick = async () => {
+  const email=emailEl.value.trim(), name=nameEl.value.trim();
+  if(!email || !name){ yapMsg.textContent='Fill Email + Name first.'; yapMsg.className='hint err'; return; }
   const minAge = Math.min(+ageMinY.value, +ageMaxY.value);
   const maxAge = Math.max(+ageMinY.value, +ageMaxY.value);
-  try {
-    yapMsg.textContent = 'Sending…'; yapMsg.className='hint';
+  try{
+    yapMsg.textContent='Sending…'; yapMsg.className='hint';
     persistLocal();
-    const res = await window.API.yap({
-      email, name, category, open: openEl.checked, minAge, maxAge
-    });
+    const res = await window.API.yap({ email, name, category, open: openEl.checked, minAge, maxAge });
     yapMsg.textContent = res.message || 'Sent.'; yapMsg.className='hint ok';
-  } catch (e) {
+    // refresh calendar after a ping (organizer will send invite; acceptance lands later)
+    await renderCalendar();
+  }catch(e){
     yapMsg.textContent = e.message || 'Failed.'; yapMsg.className='hint err';
   }
 };
 
+// ===== calendar =====
+const calTitle = q('calTitle'), calGrid=q('calGrid');
+const calPrev  = q('calPrev'),  calNext = q('calNext');
+let calYear, calMonth; // month is 1..12
+function setMonth(y,m){ calYear=y; calMonth=m; }
+(function initMonth(){
+  const d=new Date(); setMonth(d.getFullYear(), d.getMonth()+1);
+})();
+function ymKey(y,m){ return `${y}-${String(m).padStart(2,'0')}`; }
 
+function monthDays(y,m){
+  const first = new Date(y,m-1,1);
+  const last  = new Date(y,m,0).getDate();
+  const startDow = first.getDay(); // 0..6 Sun..Sat
+  return { last, startDow };
+}
+function emojiFor(cat){ return CATEGORY_MAP[cat]?.emoji || '•'; }
+
+async function fetchStats(year,month){
+  const email = emailEl.value.trim();
+  if(!email) return {};
+  try{
+    const res = await window.API.stats({ email, month: ymKey(year,month), category:'all' });
+    return res.data || {};
+  }catch{ return {}; }
+}
+
+async function renderCalendar(){
+  const {last, startDow} = monthDays(calYear, calMonth);
+  calTitle.textContent = `${calYear}-${String(calMonth).padStart(2,'0')}`;
+  calGrid.innerHTML = '';
+
+  // fetch accepted events
+  const stats = await fetchStats(calYear, calMonth); // { 'YYYY-MM-DD': {coffee:2,lunch:1,zanpan:0,total:3} }
+
+  // leading blanks
+  for(let i=0;i<startDow;i++){
+    const cell=document.createElement('div'); cell.className='cal-cell'; calGrid.appendChild(cell);
+  }
+  // days
+  const monthStr = ymKey(calYear, calMonth);
+  for(let d=1; d<=last; d++){
+    const dateStr = `${monthStr}-${String(d).padStart(2,'0')}`;
+    const cell=document.createElement('div'); cell.className='cal-cell';
+    const dn=document.createElement('div'); dn.className='cal-daynum'; dn.textContent=d;
+    const em=document.createElement('div'); em.className='cal-emojis';
+    const day = stats[dateStr] || {};
+    let s='';
+    if(day.coffee) s += ' ' + '☕'.repeat(Math.min(day.coffee, 6));
+    if(day.lunch)  s += ' ' + '🍱'.repeat(Math.min(day.lunch,  6));
+    if(day.zanpan) s += ' ' + '🍚'.repeat(Math.min(day.zanpan, 6));
+    em.textContent = s.trim();
+    cell.appendChild(dn); cell.appendChild(em);
+    calGrid.appendChild(cell);
+  }
+}
+calPrev.onclick = async ()=>{ if(--calMonth<1){calMonth=12;calYear--;} await renderCalendar(); };
+calNext.onclick = async ()=>{ if(++calMonth>12){calMonth=1; calYear++;} await renderCalendar(); };
+window.addEventListener('load', renderCalendar);
