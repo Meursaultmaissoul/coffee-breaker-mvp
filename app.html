@@ -4,63 +4,95 @@
 <title>Coffee Break</title>
 <link rel="stylesheet" href="styles.css" />
 
-<h1 id="appTitle">☕ Coffee Break</h1>
-
-<!-- 1) Register / Login -->
-<section class="card" id="register">
-  <h2>1) Register / Login</h2>
-  <label for="email">Email</label>
-  <input id="email" type="email" autocomplete="email" required />
-  <label for="name">Name</label>
-  <input id="name" type="text" autocomplete="name" required />
-  <label for="age">Age</label>
-  <input id="age" type="number" min="16" max="80" step="1" placeholder="e.g., 28" />
-  <div class="row">
-    <button id="save">Save / Update</button>
-    <span id="saveMsg" class="hint"></span>
-  </div>
-</section>
-
-<!-- 2) Status -->
-<section class="card" id="status">
-  <h2>2) Status (<span id="catLabel">Coffee</span>)</h2>
-  <div class="row">
-    <input id="open" type="checkbox" />
-    <label for="open" class="inline">Open for <span id="catWord1">Coffee</span> (today)</label>
-  </div>
-
-  <div style="margin-top:12px">
-    <div><strong>Preferred age range</strong> <span id="ageRangeLabel">20–60</span></div>
-    <div class="row">
-      <input id="ageMin" type="range" min="16" max="80" value="20" />
-      <input id="ageMax" type="range" min="16" max="80" value="60" />
+<div class="layout">
+  <main>
+    <div class="topbar">
+      <a class="btn-back" href="index.html">← Change category</a>
+      <h1 id="appTitle" class="grow">☕ Coffee Break</h1>
     </div>
-    <p class="hint">Drag to set who you’d like to hear from.</p>
-  </div>
 
-  <p class="hint">Toggles & ranges auto-save if Email + Name are filled.</p>
-  <span id="statusMsg" class="hint"></span>
-</section>
+    <!-- 1) Register / Login -->
+    <section class="card" id="register">
+      <h2>1) Register / Login</h2>
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="email" required />
+      <label for="name">Name</label>
+      <input id="name" type="text" autocomplete="name" required />
+      <label for="age">Age</label>
+      <input id="age" type="number" min="16" max="80" step="1" placeholder="e.g., 28" />
+      <div class="row">
+        <button id="save">Save / Update</button>
+        <span id="saveMsg" class="hint"></span>
+      </div>
+    </section>
 
-<!-- 3) [Category] Now -->
-<section class="card" id="yapNow">
-  <h2 id="yapHeader">3) Coffee Now</h2>
+    <!-- 2) Status -->
+    <section class="card" id="status">
+      <h2>2) Status (<span id="catLabel">Coffee</span>)</h2>
 
-  <div style="margin:0 0 8px 0">
-    <div><strong>Age range for this ping</strong> <span id="ageRangeLabelYap">20–60</span></div>
-    <div class="row">
-      <input id="ageMinYap" type="range" min="16" max="80" value="20" />
-      <input id="ageMaxYap" type="range" min="16" max="80" value="60" />
+      <!-- Switch-style Open toggle -->
+      <div class="switch-row">
+        <input id="open" type="checkbox" />
+        <label class="switch" for="open"><span class="knob"></span></label>
+        <span class="switch-text">Open for <span id="catWord1">Coffee</span> (today)</span>
+      </div>
+
+      <!-- Connected dual range (Status preference) -->
+      <div class="range-block">
+        <div class="range-head">
+          <strong>Preferred age range</strong> <span id="ageRangeLabel">20–60</span>
+        </div>
+        <div class="dual-range" id="statusRange">
+          <div class="track"></div>
+          <div class="fill" id="fillStatus"></div>
+          <input id="ageMin" type="range" min="16" max="80" value="20" />
+          <input id="ageMax" type="range" min="16" max="80" value="60" />
+        </div>
+        <p class="hint">Drag the two handles to set who you’d like to hear from.</p>
+      </div>
+
+      <span id="statusMsg" class="hint"></span>
+    </section>
+
+    <!-- 3) [Category] Now -->
+    <section class="card" id="yapNow">
+      <h2 id="yapHeader">3) Coffee Now</h2>
+
+      <!-- Connected dual range (this ping only) -->
+      <div class="range-block">
+        <div class="range-head">
+          <strong>Age range for this ping</strong> <span id="ageRangeLabelYap">20–60</span>
+        </div>
+        <div class="dual-range" id="yapRange">
+          <div class="track"></div>
+          <div class="fill" id="fillYap"></div>
+          <input id="ageMinYap" type="range" min="16" max="80" value="20" />
+          <input id="ageMaxYap" type="range" min="16" max="80" value="60" />
+        </div>
+      </div>
+
+      <div class="row">
+        <button id="yap">Ping Now!</button>
+        <span id="yapMsg" class="hint"></span>
+      </div>
+    </section>
+  </main>
+
+  <!-- Calendar aside -->
+  <aside id="calendar">
+    <div class="cal-head">
+      <button id="calPrev" title="Previous month">◀</button>
+      <div id="calTitle">—</div>
+      <button id="calNext" title="Next month">▶</button>
     </div>
-  </div>
+    <div class="cal-weekdays">
+      <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-legend">☕ Coffee　🍱 Lunch　🍚 残飯</div>
+  </aside>
+</div>
 
-  <div class="row">
-    <button id="yap">Ping Now!</button>
-    <span id="yapMsg" class="hint"></span>
-  </div>
-</section>
-
-<!-- Scripts -->
 <script src="api.gas.js"></script>
 <script src="config.js"></script>
 <script src="ui.js"></script>
